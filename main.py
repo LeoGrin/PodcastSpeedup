@@ -9,18 +9,16 @@ from pydub.effects import speedup
 
 def make_diarization_chronological(diarization):
     """
-
     :param diarization: list of ints representing the speaker of each chunck
     :return: list of ints representing the speaker of each chunck, with the speaker being indexed in chronological order
     """
     u, indices = np.unique(diarization, return_index=True) # we use the fact that np.unique(, return_index=True) return first index of appearance
     conversion_table = np.argsort(indices)
-    print(diarization)
     return [conversion_table[speaker] for speaker in diarization]
 
 
 
-def sound_to_chuncks(diarization, chunck_size):
+def sound_to_chuncks(sound, diarization, chunck_size):
     """
 
     :param diarization: list of speaker for each time chuck
@@ -30,7 +28,6 @@ def sound_to_chuncks(diarization, chunck_size):
     diarization = np.array(diarization)
     indice_list = np.concatenate((np.where(np.diff(diarization))[0], [len(diarization) - 1]))
     speaker_list = np.array(diarization[indice_list]).astype("int")
-    print(speaker_list)
     chunck_list = []
     for i in range(len(indice_list)):
         if i == 0:
@@ -56,7 +53,7 @@ def show_speakers(chunck_list, speaker_list, extract_length=10):
         play(speaker_chunck[:min(extract_length*1000, len(speaker_chunck)-1)])
 
 
-def speedup_speakers(sound, chunk_list, speaker_list, speeds):
+def speedup_speakers(chunk_list, speaker_list, speeds):
     """
     :param sound: sound to be modified
     :param chunk_list: list of segment of sounds corresponding to each speaker
@@ -80,11 +77,11 @@ def pipeline(filename, chunck_size=0.2, speeds=[2, 1.3]):
     diarization = np.array(speaker_diarization(filename, n_speakers=2, mid_step=chunck_size)).astype("int")
     diarization = make_diarization_chronological(diarization)
     print("building segments...")
-    chunk_list, speaker_list = sound_to_chuncks(diarization, chunck_size)
+    chunk_list, speaker_list = sound_to_chuncks(sound, diarization, chunck_size)
     print("showing speakers..")
     show_speakers(chunk_list, speaker_list)
     print("speeding up...")
-    speedup_speakers(sound, chunk_list, speaker_list, speeds)
+    speedup_speakers(chunk_list, speaker_list, speeds)
 
 
 #sound = AudioSegment.from_mp3("tyler.mp3")
