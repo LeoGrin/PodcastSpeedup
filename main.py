@@ -5,14 +5,20 @@ from pydub import AudioSegment
 from pydub.playback import play
 from pydub.effects import speedup
 
-#sound = AudioSegment.from_mp3("tyler.mp3")
-
-filename = "audio-files/tyler.wav"
-sound = AudioSegment.from_wav(filename)
 
 
+def make_diarization_chronological(diarization):
+    """
 
-#res = [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0]
+    :param diarization: list of ints representing the speaker of each chunck
+    :return: list of ints representing the speaker of each chunck, with the speaker being indexed in chronological order
+    """
+    u, indices = np.unique(diarization, return_index=True) # we use the fact that np.unique(, return_index=True) return first index of appearance
+    conversion_table = np.argsort(indices)
+    print(diarization)
+    return [conversion_table[speaker] for speaker in diarization]
+
+
 
 def sound_to_chuncks(diarization, chunck_size):
     """
@@ -39,13 +45,11 @@ def sound_to_chuncks(diarization, chunck_size):
         chunck_list.append(chunck)
     return chunck_list, speaker_list
 
-def show_speakers(sound, chunck_list, speaker_list, extract_length=10):
+def show_speakers(chunck_list, speaker_list, extract_length=10):
     speakers = np.unique(speaker_list)
     for speaker in speakers:
         # choose the longest chunck from the speaker (this way we'll be able to take an extract for sure)
-        print(np.where(speaker_list==speaker)[0])
-        print(len(chunk_list))
-        speaker_chuncks = [chunk_list[i] for i in np.where(speaker_list==speaker)[0]]
+        speaker_chuncks = [chunck_list[i] for i in np.where(speaker_list==speaker)[0]]
         speaker_chunck = speaker_chuncks[np.argmax([len(chunck) for chunck in speaker_chuncks])]
         # play an extract from this chunck
         print("speaker {}".format(speaker))
@@ -68,13 +72,35 @@ def speedup_speakers(sound, chunk_list, speaker_list, speeds):
     fast_sound = sum(fast_chuck_list)
     play(fast_sound)
 
+def pipeline(filename, chunck_size=0.2, speeds=[2, 1.3]):
+    #TODO : convert if not wav
+    print("loading file...")
+    sound = AudioSegment.from_wav(filename)
+    print("diarization...")
+    diarization = np.array(speaker_diarization(filename, n_speakers=2, mid_step=chunck_size)).astype("int")
+    diarization = make_diarization_chronological(diarization)
+    print("building segments...")
+    chunk_list, speaker_list = sound_to_chuncks(diarization, chunck_size)
+    print("showing speakers..")
+    show_speakers(chunk_list, speaker_list)
+    print("speeding up...")
+    speedup_speakers(sound, chunk_list, speaker_list, speeds)
 
-print("diarization...")
-chunck_size = 1 # in seconds, default
-res = speaker_diarization(filename, n_speakers=2, mid_step=chunck_size)
-print("building segments...")
-chunk_list, speaker_list = sound_to_chuncks(res, chunck_size)
-#print("speeding up...")
-#speedup_speakers(sound, chunk_list, speaker_list, [2, 1.3])
-print("showing speakers..")
-show_speakers(sound, chunk_list, speaker_list)
+
+#sound = AudioSegment.from_mp3("tyler.mp3")
+
+filename = "audio-files/tyler.wav"
+
+pipeline(filename)
+
+#res = [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0]
+
+# print("diarization...")
+# chunck_size = 1 # in seconds, default
+# res = speaker_diarization(filename, n_speakers=2, mid_step=chunck_size)
+# print("building segments...")
+# chunk_list, speaker_list = sound_to_chuncks(res, chunck_size)
+# #print("speeding up...")
+# #speedup_speakers(sound, chunk_list, speaker_list, [2, 1.3])
+# print("showing speakers..")
+# show_speakers(sound, chunk_list, speaker_list)
