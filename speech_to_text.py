@@ -2,7 +2,23 @@ import speech_recognition as sr
 import re
 
 
+def speech_to_syllabs(input_file):
+    """
+    Compute the number of syllab pronounced in the input file
+    :param input_file: file containing the sound to analyse
+    :return: the number of syllabs pronounced in the file
+    """
+    words = speech_to_text(input_file).split(" ")
+    print(words)
+    return sum([syllab_count(word) for word in words])
+
+
 def speech_to_text(input_file):
+    """
+    Compute the words pronounced in the input_file
+    :param input_file: sound file
+    :return: words as string
+    """
     r = sr.Recognizer()
     with sr.AudioFile(input_file) as source:
         audio = r.record(source)  # read the entire audio file
@@ -13,11 +29,13 @@ def speech_to_text(input_file):
     except sr.RequestError as e:
         print("Google error; {0}".format(e))
 
-def speech_to_syllabs(input_file):
-    words = speech_to_text(input_file)
-    return sum([syllab_count(word) for word in words])
 
 def syllab_count(word) :
+    """
+    Count syllabs in a word (from https://eayd.in/?p=232)
+    :param word: word to be analysed
+    :return: number of syllab
+    """
     word = word.lower()
 
     # exception_add are words that need extra syllables

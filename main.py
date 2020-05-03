@@ -53,6 +53,15 @@ def sound_to_segments(diarization, chunk_size):
     return segment_list, speaker_list
 
 def transform(segment_list, speaker_list, speeds, input_file, temp_file="temp_folder/temp"):
+    """
+    Speed up each segment of sound and save the speeded segment to a temporary file
+    :param segment_list:
+    :param speaker_list:
+    :param speeds:
+    :param input_file:
+    :param temp_file:
+    :return:
+    """
     temp_paths = []
     speed_emp = [[], []]
     for i, segment in tqdm(enumerate(segment_list)):
@@ -68,6 +77,13 @@ def transform(segment_list, speaker_list, speeds, input_file, temp_file="temp_fo
     return temp_paths
 
 def combine(temp_paths, output_file="results/final_result.wav", keep_files=False):
+    """
+    Works with transform. Combine the temporary files into one and delete them afterwards.
+    :param temp_paths:
+    :param output_file:
+    :param keep_files:
+    :return:
+    """
     cmb = sox.Combiner()
     cmb.build(temp_paths, output_file, combine_type="concatenate")
     if not keep_files:
@@ -75,11 +91,21 @@ def combine(temp_paths, output_file="results/final_result.wav", keep_files=False
             os.remove(file)
 
 def speed_up(segment_list, speaker_list, speeds, input_file, temp_file="temp_folder/temp", output_file="results/final_result.wav"):
+    """
+    Speed up the input file differently for each speaker
+    :param segment_list:
+    :param speaker_list:
+    :param speeds:
+    :param input_file:
+    :param temp_file:
+    :param output_file:
+    :return:
+    """
     output_paths = transform(segment_list, speaker_list, speeds, input_file, temp_file)
     combine(output_paths, output_file)
 
 
-def show_speakers_sox(input_file, segment_list, speaker_list, extract_length=10):
+def show_speakers(input_file, segment_list, speaker_list, extract_length=10):
     """
     Play an extract of each speaker so the user to help the user choose the speeds
     :param segment: list of segment of sounds corresponding to each speaker (tuple of time coordinate)
@@ -131,10 +157,11 @@ def find_speaker_speeds(input_file, segment_list, speaker_list, max_length=60, m
         for file in outputs:
             os.remove(file)
         print(n_syllabs)
+        print(total_length)
         speakers_speeds.append(n_syllabs / total_length)
 
 
-    print(speakers_speeds)
+    return speakers_speeds
 
 
 
@@ -157,7 +184,7 @@ def convert(input_file, output_format="wav"):
 
 
 
-def pipeline_sox(args):
+def pipeline(args):
     args.filename = convert(args.filename)
     print("diarization...")
     diarization = np.array(speaker_diarization(args.filename, n_speakers=args.n_speakers, mid_step=args.chunk_size,
@@ -170,10 +197,13 @@ def pipeline_sox(args):
     segment_list, speaker_list = sound_to_segments(diarization, args.chunk_size)
     if args.show_speakers:
         print("showing speakers..")
-        show_speakers_sox(args.filename, segment_list, speaker_list)
+        show_speakers(args.filename, segment_list, speaker_list)
         print("choose speeds for each speakers")
         args.speeds = np.array(input().split(" ")).astype(float)
-    find_speaker_speeds(args.filename, segment_list, speaker_list)
+    if args.auto:
+        speeds = find_speaker_speeds(args.filename, segment_list, speaker_list)
+        args.speeds = [max(speeds) / speed for speed in speeds]
+        print(args.speeds)
     print("speeding up...")
     speed_up(segment_list, speaker_list, args.speeds, args.filename)
 
@@ -182,17 +212,25 @@ def pipeline_sox(args):
 
 parser = argparse.ArgumentParser(description="Speed up podcast differently for each speaker")
 
+# Basic parameters
 parser.add_argument("-f", "--filename", type=str, dest="filename", help="Path of the sound file you want to speed up", required=True)
 parser.add_argument("-n", "--n_speakers", type=int, dest="n_speakers", help="Number of people speaking (0 if unkown)", default=0)
-parser.add_argument("--chunk-size", type=float, dest="chunk_size", help="Size of each chunk during speaker diarization", default=0.1)
-parser.add_argument("--show-speakers", type=bool, dest="show_speakers", help="Whether to play an extract of each speaker before asking for the speeds", default=False)
 parser.add_argument("-s", "--speeds", nargs='+', type=float, dest="speeds", help="Speed of each speaker in the extract")
 parser.add_argument("-save", "--save-file", type=str, dest="save_file", help="Path of the file we want to save to", default=None)
+
+# More options
+parser.add_argument('--show-speakers', dest="show_speakers", help="Whether to play an extract of each speaker before asking for the speeds", action='store_true')
+parser.set_defaults(show_speakers=False)
+parser.add_argument("-auto", "--automatic", dest="auto", help="Whether to automatically match the speeds of the two speakers (EXPERIMENTAL)", action='store_true')
+parser.set_defaults(auto=False)
+
+# Technical arguments for diarization
+parser.add_argument("--chunk-size", type=float, dest="chunk_size", help="Size of each chunk during speaker diarization", default=0.1)
 parser.add_argument("--short-window", type=float, dest="short_window", help="Crossfade for the speedup algorithm", default=0.05)
 parser.add_argument("--mid-window", type=float, dest="mid_window", help="Crossfade for the speedup algorithm", default=2.0)
 parser.add_argument("--lda-dim", type=int, dest="lda_dim", help="Crossfade for the speedup algorithm", default=35)
 
 args = parser.parse_args()
 t = time.time()
-pipeline_sox(args)
+pipeline(args)
 print(time.time() - t)
