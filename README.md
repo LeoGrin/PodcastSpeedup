@@ -1,5 +1,26 @@
 This package allows to speed-up a podcast differently for each speaker. It automatically recognizes the different speakers in the podcast and speed-up each one according to the user's wish.
 
+### Installing
+SoX version 14.4.2 or higher should be installed.
+
+To install SoX on Mac with Homebrew:
+
+`brew install sox`
+
+on Linux:
+
+`apt-get install sox`
+
+or install from [source](https://sourceforge.net/projects/sox/files/sox/).
+
+
+When SoX is installed, use `pip install -r requirements.txt` to install the required packages.
+
+
+
+
+
+
 ### Usage
 
 `python speedup.py -f INPUT_FILE -s 2 1.3 -save OUTPUT_FILE`
@@ -11,6 +32,7 @@ Speed-up the speakers in the input file by x2 and x1.3 (in order of appearance o
 `--show-speakers` : play an extract of each speaker before asking the user to choose speeds
 
 `--automatic` : automatically match the speeds of each speakers (by speeding up the slowest). Can be useful to balance your podcasts before adjusting speed in your favorite podcast app. WARNING : experimental.
+
 
 
 ### Notes:
