@@ -9,7 +9,6 @@ def speech_to_syllabs(input_file):
     :return: the number of syllabs pronounced in the file
     """
     words = speech_to_text(input_file).split(" ")
-    print(words)
     return sum([syllab_count(word) for word in words])
 
 
@@ -23,7 +22,7 @@ def speech_to_text(input_file):
     with sr.AudioFile(input_file) as source:
         audio = r.record(source)  # read the entire audio file
     try:
-        return r.recognize_houndify(audio)
+        return r.recognize_google(audio)
     except sr.UnknownValueError:
         print("Google could not understand audio")
     except sr.RequestError as e:
