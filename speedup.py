@@ -76,7 +76,7 @@ def transform(segment_list, speaker_list, speeds, input_file, temp_file="temp_fo
     print(speed_emp)
     return temp_paths
 
-def combine(temp_paths, output_file="results/final_result.wav", keep_files=False):
+def combine(temp_paths, output_file, keep_files=False):
     """
     Works with transform. Combine the temporary files into one and delete them afterwards.
     :param temp_paths:
@@ -205,7 +205,7 @@ def pipeline(args):
         args.speeds = [max(speeds) / speed for speed in speeds]
         print(args.speeds)
     print("speeding up...")
-    speed_up(segment_list, speaker_list, args.speeds, args.filename)
+    speed_up(segment_list, speaker_list, args.speeds, args.filename, output_file=args.save_file)
 
 
 
@@ -225,10 +225,16 @@ parser.add_argument("-auto", "--automatic", dest="auto", help="Whether to automa
 parser.set_defaults(auto=False)
 
 # Technical arguments for diarization
-parser.add_argument("--chunk-size", type=float, dest="chunk_size", help="Size of each chunk during speaker diarization", default=0.1)
-parser.add_argument("--short-window", type=float, dest="short_window", help="Crossfade for the speedup algorithm", default=0.05)
-parser.add_argument("--mid-window", type=float, dest="mid_window", help="Crossfade for the speedup algorithm", default=2.0)
-parser.add_argument("--lda-dim", type=int, dest="lda_dim", help="Crossfade for the speedup algorithm", default=35)
+# FAST
+parser.add_argument("--chunk-size", type=float, dest="chunk_size", help="Size of each chunk during speaker diarization", default=1.0)
+parser.add_argument("--short-window", type=float, dest="short_window", help="", default=0.2)
+parser.add_argument("--mid-window", type=float, dest="mid_window", help="", default=4.0)
+parser.add_argument("--lda-dim", type=int, dest="lda_dim", help="", default=35)
+# SLOW
+# parser.add_argument("--chunk-size", type=float, dest="chunk_size", help="Size of each chunk during speaker diarization", default=0.1)
+# parser.add_argument("--short-window", type=float, dest="short_window", help="", default=0.05)
+# parser.add_argument("--mid-window", type=float, dest="mid_window", help="", default=2.0)
+# parser.add_argument("--lda-dim", type=int, dest="lda_dim", help="", default=35)
 
 args = parser.parse_args()
 t = time.time()
