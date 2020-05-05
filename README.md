@@ -19,8 +19,6 @@ When SoX is installed, use `pip install -r requirements.txt` to install the requ
 
 
 
-
-
 ### Usage
 
 `python speedup.py -f INPUT_FILE -s 2 1.3 -save OUTPUT_FILE`
@@ -34,6 +32,9 @@ Speed-up the speakers in the input file by x2 and x1.3 (in order of appearance o
 `--automatic` : automatically match the speeds of each speakers (by speeding up the slowest). Can be useful to balance your podcasts before adjusting speed in your favorite podcast app. WARNING : experimental.
 
 
+### Example:
+
+Try `python speedup.py -f audio-files/tyler-trimmed.wav -s 1.8 1.2 -save results/tyler-sped-up.wav` to speed up an extract from Conversation With Tyler.
 
 ### Notes:
 
