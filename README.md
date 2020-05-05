@@ -42,4 +42,4 @@ The package is quite slow right now (10 minutes for a 1h30 podcast)
 
 By default, the speakers are ordered according to their first appearance in the podcast. Given that the host of the podcast is probably the first speaker, `-s 2 1.3` should speed-up the host x2 and the guest x1.3. Note that intro music can sometimes mess the default order of the speakers (to be solved).
 
-Use [pysox](https://github.com/rabitt/pysox) for sound modification, [pyAudioAnalysis](https://github.com/tyiannak/pyAudioAnalysis) for speaker diarization, and [SpeechRecognition](https://github.com/Uberi/speech_recognition) for infering speaker speed in automatic mode.
+Uses [pysox](https://github.com/rabitt/pysox) for sound modification, [pyAudioAnalysis](https://github.com/tyiannak/pyAudioAnalysis) for speaker diarization, and [SpeechRecognition](https://github.com/Uberi/speech_recognition) for infering speaker speed in automatic mode.
