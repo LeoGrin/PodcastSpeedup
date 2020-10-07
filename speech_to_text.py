@@ -1,32 +1,115 @@
-import speech_recognition as sr
+import numpy as np
 import re
+from deepspeech import Model
+import sox
+import subprocess
+import shlex
+import os
+try:
+    from shhlex import quote
+except ImportError:
+    from pipes import quote
 
 
-def speech_to_syllabs(input_file):
+def speech_to_syllabs(input_file, file_length):
     """
-    Compute the number of syllab pronounced in the input file
+    Compute the number of syllabs pronounced in the input file
     :param input_file: file containing the sound to analyse
+    :param file_length: time length of the input file (in seconds)
     :return: the number of syllabs pronounced in the file
     """
-    words = speech_to_text(input_file).split(" ")
+    #t = time.time()
+    words = speech_to_text(input_file, file_length, return_speed_per_chunk=False).split(" ")
+    #print(time.time() - t)
+    #print(len(words))
+    #print(words)
     return sum([syllab_count(word) for word in words])
 
+def speed_distribution(input_file, file_length, chunk_size=10):
+    """
+    Function used for experimentation, to retrieve the number of syllab in each chunk of the extract
+    :param input_file: file containing the sound extract
+    :param file_length: time length of the input file (in seconds)
+    :param chunk_size: size of the chunk in which we decompose the sound
+    :return: a list of the number of syllabs in each chunk
+    """
+    words_per_chunk = map(lambda s:s.split(" "),
+                          speech_to_text(input_file, file_length, return_speed_per_chunk=True, chunk_size=chunk_size))
+    syllabs_per_chunk = map(lambda words:sum([syllab_count(word) for word in words]),
+                            words_per_chunk)
+    return syllabs_per_chunk
 
-def speech_to_text(input_file):
+
+
+
+def convert_samplerate(audio_path, desired_sample_rate):
+    # taken from DeepSpeech github
+    sox_cmd = 'sox {} --type raw --bits 16 --channels 1 --rate {} --encoding signed-integer --endian little --compression 0.0 --no-dither - '.format(quote(audio_path), desired_sample_rate)
+    try:
+        output = subprocess.check_output(shlex.split(sox_cmd), stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError('SoX returned non-zero status: {}'.format(e.stderr))
+    except OSError as e:
+        raise OSError(e.errno, 'SoX not found, use {}hz files or install it: {}'.format(desired_sample_rate, e.strerror))
+
+    return desired_sample_rate, np.frombuffer(output, np.int16)
+
+
+
+def speech_to_text(input_file, file_length, return_speed_per_chunk=False, chunk_size = 10):
     """
     Compute the words pronounced in the input_file
-    :param input_file: sound file
+    :param input_file: sound file path
+    :param file_length: time length of the input file (in seconds)
+    :param return_speed_per_chunk: if True, the function return a list of words per chunk, if false it returns all the words in the extract
     :return: words as string
     """
-    r = sr.Recognizer()
-    with sr.AudioFile(input_file) as source:
-        audio = r.record(source)  # read the entire audio file
-    try:
-        return r.recognize_google(audio)
-    except sr.UnknownValueError:
-        print("Google could not understand audio")
-    except sr.RequestError as e:
-        print("Google error; {0}".format(e))
+    # setup the model
+    if return_speed_per_chunk:
+        result = []
+    else:
+        result = ""
+    recognizer = Model("models/deepspeech-0.8.2-models.pbmm")
+    recognizer.setBeamWidth(2000)
+    recognizer.enableExternalScorer("models/deepspeech-0.8.2-models.scorer")
+    desired_sample_rate = recognizer.sampleRate()
+    # convert input file into smaller audio chunks (apparently works better)
+    CHUNK_SIZE = chunk_size
+    n_chunks = int(file_length // CHUNK_SIZE)
+    for i in range(n_chunks):
+        tfm = sox.Transformer()
+        tfm.trim(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+        tfm.build(input_file, "temp_folder/chunked_file{}.wav".format(i))
+        cmb = sox.Combiner()
+        input_list = ["audio-files/silence.wav", "temp_folder/chunked_file{}.wav".format(i),
+                      "audio-files/silence.wav"]
+        cmb.build(input_list, "temp_folder/chunked_file_with_silence{}.wav".format(i), combine_type="concatenate")
+        fs, audio = convert_samplerate("temp_folder/chunked_file_with_silence{}.wav".format(i), desired_sample_rate)
+        if return_speed_per_chunk:
+            result.append(recognizer.stt(audio))
+        else:
+            result += recognizer.stt(audio)
+        os.remove("temp_folder/chunked_file{}.wav".format(i))
+        os.remove("temp_folder/chunked_file_with_silence{}.wav".format(i))
+    print(result)
+    return result
+
+#def speech_to_text_google(input_file):
+#    """
+#    Compute the words pronounced in the input_file
+#    :param input_file: sound file
+#    :return: words as string
+#    """
+    # r = sr.Recognizer()
+    # with sr.AudioFile(input_file) as source:
+    #     audio = r.record(source)  # read the entire audio file
+    # try:
+    #     return r.recognize_google(audio)
+    # except sr.UnknownValueError:
+    #     print("Google could not understand audio")
+    # except sr.RequestError as e:
+    #     print("Google error; {0}".format(e))
+
 
 
 def syllab_count(word) :
