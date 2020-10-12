@@ -69,9 +69,9 @@ def speech_to_text(input_file, file_length, return_speed_per_chunk=False, chunk_
         result = []
     else:
         result = ""
-    recognizer = Model("models/deepspeech-0.8.2-models.pbmm")
+    recognizer = Model("../models/deepspeech-0.8.2-models.pbmm")
     recognizer.setBeamWidth(2000)
-    recognizer.enableExternalScorer("models/deepspeech-0.8.2-models.scorer")
+    recognizer.enableExternalScorer("../models/deepspeech-0.8.2-models.scorer")
     desired_sample_rate = recognizer.sampleRate()
     # convert input file into smaller audio chunks (apparently works better)
     CHUNK_SIZE = chunk_size
@@ -80,18 +80,18 @@ def speech_to_text(input_file, file_length, return_speed_per_chunk=False, chunk_
         tfm = sox.Transformer()
         tfm.trim(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
         tfm.set_output_format(channels=1)
-        tfm.build(input_file, "temp_folder/chunked_file{}.wav".format(i))
+        tfm.build(input_file, "../temp_folder/chunked_file{}.wav".format(i))
         cmb = sox.Combiner()
-        input_list = ["audio-files/silence.wav", "temp_folder/chunked_file{}.wav".format(i),
-                      "audio-files/silence.wav"]
-        cmb.build(input_list, "temp_folder/chunked_file_with_silence{}.wav".format(i), combine_type="concatenate")
-        fs, audio = convert_samplerate("temp_folder/chunked_file_with_silence{}.wav".format(i), desired_sample_rate)
+        input_list = ["../audio-files/silence.wav", "../temp_folder/chunked_file{}.wav".format(i),
+                      "../audio-files/silence.wav"]
+        cmb.build(input_list, "../temp_folder/chunked_file_with_silence{}.wav".format(i), combine_type="concatenate")
+        fs, audio = convert_samplerate("../temp_folder/chunked_file_with_silence{}.wav".format(i), desired_sample_rate)
         if return_speed_per_chunk:
             result.append(recognizer.stt(audio))
         else:
             result += recognizer.stt(audio)
-        os.remove("temp_folder/chunked_file{}.wav".format(i))
-        os.remove("temp_folder/chunked_file_with_silence{}.wav".format(i))
+        os.remove("../temp_folder/chunked_file{}.wav".format(i))
+        os.remove("../temp_folder/chunked_file_with_silence{}.wav".format(i))
     print(result)
     return result
 

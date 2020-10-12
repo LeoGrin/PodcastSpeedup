@@ -51,7 +51,7 @@ def sound_to_segments(diarization, chunk_size):
     return segment_list, speaker_list
 
 
-def transform(segment_list, speaker_list, speeds, input_file, temp_file="temp_folder/temp"):
+def transform(segment_list, speaker_list, speeds, input_file, temp_file="../temp_folder/temp"):
     """
     Speed up each segment of sound and save the sped-up segment to a temporary file
     :param segment_list:
@@ -87,8 +87,8 @@ def combine(temp_paths, output_file, keep_files=False):
             os.remove(file)
 
 
-def speed_up(segment_list, speaker_list, speeds, input_file, temp_file="temp_folder/temp",
-             output_file="results/final_result.wav"):
+def speed_up(segment_list, speaker_list, speeds, input_file, temp_file="../temp_folder/temp",
+             output_file="../results/final_result.wav"):
     """
     Speed up the input file differently for each speaker
     :param segment_list: list of segment of sounds ((tuple of time coordinate) corresponding to each speaker
@@ -152,8 +152,8 @@ def create_speaker_sample(input_file, segment_list, speaker_list, max_length=60,
             total_length += segment_length
             tfm.trim(speaker_segment[0], speaker_segment[0] + segment_length)
             # tfm.preview(input_file)
-            tfm.build(input_file, "temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
-            outputs.append("temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
+            tfm.build(input_file, "../temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
+            outputs.append("../temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
             i += 1
         # Now that we have a representative extract, we transcribe it to infer the speed of the speaker.
 
@@ -164,8 +164,8 @@ def create_speaker_sample(input_file, segment_list, speaker_list, max_length=60,
 
         if len(outputs) > 1:
             cmb = sox.Combiner()
-            cmb.build(outputs, "temp_folder/to_process" + str(speaker) + filename + ".wav", combine_type="concatenate")
-            speakers_output.append(("temp_folder/to_process" + str(speaker) + filename + ".wav", total_length))
+            cmb.build(outputs, "../temp_folder/to_process" + str(speaker) + filename + ".wav", combine_type="concatenate")
+            speakers_output.append(("../temp_folder/to_process" + str(speaker) + filename + ".wav", total_length))
             for file in outputs:
                 os.remove(file)  # remove temporary files
         else:
