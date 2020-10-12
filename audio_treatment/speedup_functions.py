@@ -1,10 +1,7 @@
 from pyAudioAnalysis.audioSegmentation import speaker_diarization
-import numpy as np
-import sox
-import os
 import time
 from tqdm import tqdm
-from speech_to_text import *
+from audio_treatment.speech_to_text import *
 
 
 def make_diarization_chronological(diarization):
@@ -49,7 +46,8 @@ def sound_to_segments(diarization, chunk_size):
             # + 1 is to count the first chunk
         segment_right = (indice_list[i] + 1) * chunk_size  # right bound of the speaker segment
         segment_list.append((segment_left, segment_right))
-    print(segment_list)
+        print("speaker {}, {} - {}".format(speaker_list[i], segment_left, segment_right))
+    #print(segment_list)
     return segment_list, speaker_list
 
 
@@ -199,20 +197,21 @@ def convert(input_file, output_format="wav"):
     :param output_format: format to output
     :return:  path to the  new file
     """
-    # TODO delete file afterward
+    to_delete = False
     if input_file[-3:] != output_format:
+        to_delete = True #delete the converted file afterward (we only use the wav file for transformation)
         tfm = sox.Transformer()
         new_file = input_file[:-3] + "wav"
         tfm.build(input_file, new_file)
     else:
         new_file = input_file
 
-    return new_file
+    return new_file, to_delete
 
 
 def pipeline(args):
     start_time = time.time()
-    args.filename = convert(args.filename)
+    args.filename, to_delete = convert(args.filename)
     t = time.time()
     print("diarization...")
     diarization = np.array(speaker_diarization(args.filename, n_speakers=args.n_speakers, mid_step=args.chunk_size,
@@ -240,4 +239,6 @@ def pipeline(args):
         print(args.speeds)
     print("speeding up...")
     speed_up(segment_list, speaker_list, args.speeds, args.filename, output_file=args.save_file)
+    if to_delete:
+        os.remove(args.filename)
     print("Done in {} seconds! Saved the result to {}".format(int(time.time() -start_time), args.save_file))

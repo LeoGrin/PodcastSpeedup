@@ -79,6 +79,7 @@ def speech_to_text(input_file, file_length, return_speed_per_chunk=False, chunk_
     for i in range(n_chunks):
         tfm = sox.Transformer()
         tfm.trim(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+        tfm.set_output_format(channels=1)
         tfm.build(input_file, "temp_folder/chunked_file{}.wav".format(i))
         cmb = sox.Combiner()
         input_list = ["audio-files/silence.wav", "temp_folder/chunked_file{}.wav".format(i),
