@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import selenium
 import time
 from selenium.webdriver.support.wait import WebDriverWait
 import os.path
@@ -15,7 +16,7 @@ def upload_podcast(audio_filepath, image_filepath, name, description, login, pas
     :param description: Description of the podcast (to appear to listener)
     :param login:  Login to connect to Anchor
     :param password: Password to connect to Anchor
-    :return: None
+    :return: True if the upload was successful, False otherwise
     """
     #TODO make headless to speed up
     start_time = time.time()
@@ -38,25 +39,39 @@ def upload_podcast(audio_filepath, image_filepath, name, description, login, pas
     button_upload = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div/div[1]/div/div/div/div/div[2]/div[1]/div[1]/div/input')))
     button_upload.send_keys(os.path.abspath(audio_filepath)) #selenium needs the absolute file path
     time.sleep(1)
-    wait = WebDriverWait(driver, 1000)
+    wait = WebDriverWait(driver, 5000)
     button_save = wait.until(EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[1]/div/div/div/div/div[2]/button')))
     button_save.click()
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 50)
     elem_title = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="title"]')))
+    time.sleep(1)
     elem_description = driver.find_element_by_xpath('/html/body/div/div/div[1]/div/div/form/div[1]/div[2]/div[2]/div/label/div[2]/div/div/div[2]/div/div[2]/div')
     elem_title.send_keys(name)
+    time.sleep(2)
     elem_description.send_keys(description)
+    time.sleep(1)
     if image_filepath:
         button_image = driver.find_element_by_xpath('/html/body/div/div/div/div/div/form/div[3]/div[2]/div[1]/div/div/input')
         button_image.send_keys(os.path.abspath(image_filepath))
+        time.sleep(2)
         wait = WebDriverWait(driver, 10)
         button_save_image = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div/div/div[2]/p/button[1]')))
         button_save_image.click()
     time.sleep(3)
     publish_button = driver.find_element_by_xpath('/html/body/div/div/div[1]/div/div/form/div[1]/div[1]/div[2]/div[2]/div/div/div/button/div/div/div')
     publish_button.click()
-    print("Done!")
+    wait = WebDriverWait(driver, 200)
     print("It took {} seconds".format(int(time.time() - start_time)))
+    try:
+        wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div/div[1]/div/div/div/div[1]')))
+        print("Successful upload !")
+        driver.close()
+        return True
+    except selenium.common.exceptions.TimeoutException:
+        print("Error, the podcast may not be uploaded...")
+        driver.close()
+        return False
+
 
 
 if __name__ == """__main__""":

@@ -2,6 +2,8 @@ from pyAudioAnalysis.audioSegmentation import speaker_diarization
 import time
 from tqdm import tqdm
 from audio_treatment.speech_to_text import *
+import warnings
+
 
 
 def make_diarization_chronological(diarization):
@@ -46,7 +48,8 @@ def sound_to_segments(diarization, chunk_size):
             # + 1 is to count the first chunk
         segment_right = (indice_list[i] + 1) * chunk_size  # right bound of the speaker segment
         segment_list.append((segment_left, segment_right))
-        print("speaker {}, {} - {}".format(speaker_list[i], segment_left, segment_right))
+        #print("speaker {}, {} - {}".format(speaker_list[i], segment_left, segment_right))
+    print(segment_list)
     #print(segment_list)
     return segment_list, speaker_list
 
@@ -65,7 +68,12 @@ def transform(segment_list, speaker_list, speeds, input_file, temp_file="../temp
     for i, segment in tqdm(enumerate(segment_list)):
         tfm = sox.Transformer()
         tfm.trim(segment[0], segment[1])
-        tfm.tempo(speeds[speaker_list[i]], "s")
+        #if not np.isclose(speeds[speaker_list[i]], 1.0):
+            #if abs(speeds[speaker_list[i]] - 1.0) <= 0.1:
+            #    tfm.stretch(speeds[speaker_list[i]])
+            #else:
+        if abs(speeds[speaker_list[i]] - 1.0) > 0.02: # don't do anything if the difference is too small
+            tfm.tempo(speeds[speaker_list[i]], "s")
         tfm.build(input_file, temp_file + str(i) + ".wav")
         temp_paths.append(temp_file + str(i) + ".wav")
 
@@ -100,7 +108,7 @@ def speed_up(segment_list, speaker_list, speeds, input_file, temp_file="../temp_
     :return: None
     """
     output_paths = transform(segment_list, speaker_list, speeds, input_file, temp_file)
-    combine(output_paths, output_file, keep_files=True)
+    combine(output_paths, output_file, keep_files=False)
 
 
 def show_speakers(input_file, segment_list, speaker_list, extract_length=10):
@@ -125,7 +133,7 @@ def show_speakers(input_file, segment_list, speaker_list, extract_length=10):
         tfm.preview(input_file)
 
 
-def create_speaker_sample(input_file, segment_list, speaker_list, max_length=60, min_length=500):
+def create_speaker_sample(input_file, segment_list, speaker_list, max_length, min_length):
     """
     Create a representative extract of each speaker in the diarized audio file
     :param input_file (list): name of the file to use
@@ -174,7 +182,7 @@ def create_speaker_sample(input_file, segment_list, speaker_list, max_length=60,
     return speakers_output
 
 
-def find_speaker_speeds(input_file, segment_list, speaker_list, max_length=40, min_length=40):
+def find_speaker_speeds(input_file, segment_list, speaker_list, max_length, min_length):
     """
     Find speed for each speaker by looking at the number of syllab pronounced by unit of time. Use DeepSpeech.
     Delete the file in speakers_output !
@@ -182,7 +190,18 @@ def find_speaker_speeds(input_file, segment_list, speaker_list, max_length=40, m
     :return: List of speeds (syllab / s) for each speakers.
     """
     speakers_speeds = []
-    speakers_output = create_speaker_sample(input_file, segment_list, speaker_list, max_length, min_length)
+    try:
+        speakers_output = create_speaker_sample(input_file, segment_list, speaker_list, max_length, min_length)
+    except: #an exception means that that we can't find enough speaker extracts
+        try:
+            #try again with less strict requirements
+            speakers_output = create_speaker_sample(input_file, segment_list, speaker_list, max_length * 2, min_length / 2)
+            warnings.warn("WARNING: few extracts were found for one speaker, speed estimation may be unreliable")
+        except:
+            #give up
+            warnings.warn("WARNING: not enough extract found for one speaker, the audio will not be sped up !")
+            return [1.0 for _ in speaker_list]
+
     for filename, length in speakers_output:
         n_syllabs = speech_to_syllabs(filename, length)
         speakers_speeds.append(n_syllabs / length)
@@ -208,6 +227,32 @@ def convert(input_file, output_format="wav"):
 
     return new_file, to_delete
 
+def add_intro(audio_path, output_path, keep_file = False):
+    """
+    Add intro to the transformed podcast
+    :param audio_path: main audio
+    :param intro_path: short intro
+    :param output_path: where to save the result
+    :param keep_file: whether to keep the main file (by default, we delete it)
+    :return: None
+    """
+    cmb = sox.Combiner()
+
+    if sox.file_info.channels(audio_path) == 2:
+        intro_path = "../audio-files/intro_stereo.wav"
+    else:
+        intro_path = "../audio-files/intro_mono.wav"
+
+    desired_sample_rate = sox.file_info.sample_rate(audio_path)
+    tfm = sox.Transformer()
+    tfm.set_output_format(rate=desired_sample_rate)
+    tfm.build(intro_path, "../temp_folder/intro_sample_rate.wav")
+    input_list = ["../temp_folder/intro_sample_rate.wav", audio_path]
+    cmb.build(input_list, output_path, combine_type="concatenate")
+    os.remove("../temp_folder/intro_sample_rate.wav")
+    if not keep_file:
+        os.remove(audio_path)
+
 
 def pipeline(args):
     start_time = time.time()
@@ -231,14 +276,16 @@ def pipeline(args):
         args.speeds = np.array(input().split(" ")).astype(float)
     if args.auto:
         print("Automatically finding speakers speeds...")
-        speeds = find_speaker_speeds(args.filename, segment_list, speaker_list)
+        speeds = find_speaker_speeds(args.filename, segment_list, speaker_list, max_length = 60, min_length = 350)
         print("Speakers speeds: (syllab / minutes)")
         print(list(60 * np.array(speeds))) # convert to syllab / minutes
         args.speeds = [max(speeds) / speed for speed in speeds]
         print("Going to speed up the speakers by :")
         print(args.speeds)
     print("speeding up...")
-    speed_up(segment_list, speaker_list, args.speeds, args.filename, output_file=args.save_file)
+    speed_up(segment_list, speaker_list, args.speeds, args.filename, output_file="../temp_folder/audio_speedup.wav")
+    print("adding intro...")
+    add_intro("../temp_folder/audio_speedup.wav", args.save_file)
     if to_delete:
         os.remove(args.filename)
     print("Done in {} seconds! Saved the result to {}".format(int(time.time() -start_time), args.save_file))
