@@ -1,35 +1,37 @@
 This package allows to speed up a podcast differently for each speaker. It automatically recognizes the different speakers in the podcast and speed each one up to equalize their speeds (or to the choosing of the user). 
 There are two ways to use this package:
-- Simply suscribing to the RSS links on your favorite podcast app. 
-- Directly changing the speaker speeds of an audio file
+- Simply suscribing to the RSS links on your favorite podcast app (no need to install the package)
+- Directly changing the speaker speeds of an audio file.
 
-## Suscribing to the RSS feeds
+## RSS feeds
 
+### Suscribing 
 Simply check [the list of available podcasts](https://github.com/LeoGrin/PodcastSpeedup/blob/master/RSS_links.txt) and 
-suscribe to the one you want on your podcast app. For each podcast, the speeds of the speaker are equalized by 
-speeding-up the slowest. If the podcast you want is not available, you can add a new podcast to the list.
+suscribe to the one you want on your podcast app. For each podcast, the speeds of the speakers are equalized by 
+speeding up the slowest. If the podcast you want is not available, you can add a new podcast to the list.
 
 
 ### Adding a podcast
 
 To add a podcast to the list so that it's downloaded, transformed and uploaded to a new RSS link:
-- create an anchor account (with a new email adress)
+- create an [Anchor](https://anchor.fm/) account (with a new email adress)
     
-- [find the rss link of this anchor account](https://help.anchor.fm/hc/en-us/articles/360027712351-Locating-your-Anchor-RSS-feed)
+- [find the rss link of this Anchor account](https://help.anchor.fm/hc/en-us/articles/360027712351-Locating-your-Anchor-RSS-feed)
     
 - run the following command with your own parameters (this is an example for the podcast Conversation With Tyler)
 
 `python download_and_upload/add_podcast.py --name Conversation With Tyler --short-name cwt --original-rss http://cowenconvos.libsyn.com/rss --new-rss https://anchor.fm/s/3b3f2bb4/podcast/rss --anchor-username cwtspeedup@protonmail.com --anchor-password cwtspeedup2324`
 
+`original_rss` should be the RSS link of the original podcast, `new_rss` should be the RSS link of the Anchor account you've created.
 
 ### We need your help
 
-You can help by transforming and uploading new episodes coming out ! You just need to;
+You can help by transforming and uploading new episodes coming out ! You just need to:
  - install the package (see below)
  - run `python download_and_upload/refresh.py `
 
 ## Transforming audio files manually
-You can also use this package directly to transform podcast audio files.
+You can also use this package directly to transform podcast audio files. In this case, you'll need to install it first.
 
 ### Installing
 SoX version 14.4.2 or higher should be installed.
