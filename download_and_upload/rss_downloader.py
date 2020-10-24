@@ -23,15 +23,16 @@ def update_rss(rss_url, csv_filepath):
             if link.type == u'audio/mpeg':
                 episode["url"] = link.href
         episode["uploaded"] = False
-        episode["sped_up_by"] = None
+        episode["sped_up_by"] = "not_uploaded"
         episodes.append(episode)
     df = pd.DataFrame(episodes)
     # if the db already exists, update it
     if path.exists(csv_filepath):
         df_old = pd.read_csv(csv_filepath)
-        df_merged = pd.concat((df_old, df))
+        df_merged = pd.concat((df, df_old))
         # drop duplicates, making sure that we select the duplicate with uploaded = True in case of conflict
-        df_merged = df_merged.iloc[df_merged.uploaded.ne("uploaded").argsort(kind='mergesort')].drop_duplicates(["url", "title"])
+        #df_merged = df_merged.iloc[df_merged.uploaded.ne("uploaded").argsort(kind='mergesort')]["uploaded"])
+        df_merged = df_merged.drop_duplicates(["url", "title"], keep = "last")
         df_merged.to_csv(csv_filepath, index=False) #no unamed column
     # if we have no db, create it
     if not path.exists(csv_filepath):

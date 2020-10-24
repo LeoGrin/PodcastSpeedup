@@ -17,24 +17,24 @@ def upload_all_podcast_from_db(podcast_db, anchor_login, anchor_password):
         try:
             #download podcast and image temporarly
             print("Downloading the episode from the rss feed... ({} / {})".format(counter, len(df_to_upload)))
-            download(episode.url, "../temp_folder", "audio.mp3")
-            download(episode.image, "../temp_folder", "image.jpg")
+            download(episode.url, "temp_folder", "audio.mp3")
+            download(episode.image, "temp_folder", "image.jpg")
             #do the speaker diarization and the speedup
             print("Transforming the audio file...")
             parser = create_parser()
-            args = parser.parse_args(['-f', '../temp_folder/audio.mp3', '-auto', '-save', '../temp_folder/audio_transformed.mp3'])
+            args = parser.parse_args(['-f', 'temp_folder/audio.mp3', '-auto', '-save', 'temp_folder/audio_transformed.mp3'])
             speeds = pipeline(args)
             print("Uploading to Anchor...")
             description = episode.summary + "\n Sped up the speakers by {}".format(speeds)
-            successful_upload = upload_one_episode('../temp_folder/audio_transformed.mp3', '../temp_folder/image.jpg', episode.title, description, anchor_login, anchor_password)
+            successful_upload = upload_one_episode('temp_folder/audio_transformed.mp3', 'temp_folder/image.jpg', episode.title, description, anchor_login, anchor_password)
             if successful_upload:
                 df.loc[[index], ["uploaded"]] = True
-                df.loc[[index], ["sped_up_by"]] = speeds
+                df.loc[[index], ["sped_up_by"]] = ", ".join([str(speed) for speed in speeds])
                 df.to_csv(podcast_db, index=False)
             print("Removing temporary files...")
-            os.remove('../temp_folder/audio.mp3')
-            os.remove('../temp_folder/audio_transformed.mp3')
-            os.remove('../temp_folder/image.jpg')
+            os.remove('temp_folder/audio.mp3')
+            os.remove('temp_folder/audio_transformed.mp3')
+            os.remove('temp_folder/image.jpg')
             print("Done !")
         except Exception as e:
             print("Error")

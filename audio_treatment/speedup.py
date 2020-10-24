@@ -1,4 +1,7 @@
 import argparse
+import sys
+import os
+sys.path.append(os.getcwd()) #correct path from cmd line
 from audio_treatment.speedup_functions import *
 
 

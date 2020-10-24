@@ -54,7 +54,7 @@ def sound_to_segments(diarization, chunk_size):
     return segment_list, speaker_list
 
 
-def transform(segment_list, speaker_list, speeds, input_file, temp_file="../temp_folder/temp"):
+def transform(segment_list, speaker_list, speeds, input_file, temp_file="temp_folder/temp"):
     """
     Speed up each segment of sound and save the sped-up segment to a temporary file
     :param segment_list:
@@ -95,8 +95,8 @@ def combine(temp_paths, output_file, keep_files=False):
             os.remove(file)
 
 
-def speed_up(segment_list, speaker_list, speeds, input_file, temp_file="../temp_folder/temp",
-             output_file="../results/final_result.wav"):
+def speed_up(segment_list, speaker_list, speeds, input_file, temp_file="temp_folder/temp",
+             output_file="results/final_result.wav"):
     """
     Speed up the input file differently for each speaker
     :param segment_list: list of segment of sounds ((tuple of time coordinate) corresponding to each speaker
@@ -160,8 +160,8 @@ def create_speaker_sample(input_file, segment_list, speaker_list, max_length, mi
             total_length += segment_length
             tfm.trim(speaker_segment[0], speaker_segment[0] + segment_length)
             # tfm.preview(input_file)
-            tfm.build(input_file, "../temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
-            outputs.append("../temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
+            tfm.build(input_file, "temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
+            outputs.append("temp_folder/temp_speed_" + str(speaker) + str(i) + filename + ".wav")
             i += 1
         # Now that we have a representative extract, we transcribe it to infer the speed of the speaker.
 
@@ -172,8 +172,8 @@ def create_speaker_sample(input_file, segment_list, speaker_list, max_length, mi
 
         if len(outputs) > 1:
             cmb = sox.Combiner()
-            cmb.build(outputs, "../temp_folder/to_process" + str(speaker) + filename + ".wav", combine_type="concatenate")
-            speakers_output.append(("../temp_folder/to_process" + str(speaker) + filename + ".wav", total_length))
+            cmb.build(outputs, "temp_folder/to_process" + str(speaker) + filename + ".wav", combine_type="concatenate")
+            speakers_output.append(("temp_folder/to_process" + str(speaker) + filename + ".wav", total_length))
             for file in outputs:
                 os.remove(file)  # remove temporary files
         else:
@@ -193,6 +193,7 @@ def find_speaker_speeds(input_file, segment_list, speaker_list, max_length, min_
     try:
         speakers_output = create_speaker_sample(input_file, segment_list, speaker_list, max_length, min_length)
     except: #an exception means that that we can't find enough speaker extracts
+        #TODO: remove temporary files even when it crashes
         try:
             #try again with less strict requirements
             speakers_output = create_speaker_sample(input_file, segment_list, speaker_list, max_length * 2, min_length / 2)
@@ -200,7 +201,7 @@ def find_speaker_speeds(input_file, segment_list, speaker_list, max_length, min_
         except:
             #give up
             warnings.warn("WARNING: not enough extract found for one speaker, the audio will not be sped up !")
-            return [1.0 for _ in speaker_list]
+            return [1.0 for _ in np.unique(speaker_list)]
 
     for filename, length in speakers_output:
         n_syllabs = speech_to_syllabs(filename, length)
@@ -239,17 +240,17 @@ def add_intro(audio_path, output_path, keep_file = False):
     cmb = sox.Combiner()
 
     if sox.file_info.channels(audio_path) == 2:
-        intro_path = "../audio-files/intro_stereo.wav"
+        intro_path = "audio-files/intro_stereo.wav"
     else:
-        intro_path = "../audio-files/intro_mono.wav"
+        intro_path = "audio-files/intro_mono.wav"
 
     desired_sample_rate = sox.file_info.sample_rate(audio_path)
     tfm = sox.Transformer()
     tfm.set_output_format(rate=desired_sample_rate)
-    tfm.build(intro_path, "../temp_folder/intro_sample_rate.wav")
-    input_list = ["../temp_folder/intro_sample_rate.wav", audio_path]
+    tfm.build(intro_path, "temp_folder/intro_sample_rate.wav")
+    input_list = ["temp_folder/intro_sample_rate.wav", audio_path]
     cmb.build(input_list, output_path, combine_type="concatenate")
-    os.remove("../temp_folder/intro_sample_rate.wav")
+    os.remove("temp_folder/intro_sample_rate.wav")
     if not keep_file:
         os.remove(audio_path)
 
@@ -272,7 +273,7 @@ def pipeline(args):
     if args.show_speakers:
         print("showing speakers...")
         show_speakers(args.filename, segment_list, speaker_list)
-        print("choose speeds for each speakers")
+        print("choose speeds for each speakers (separated by space)")
         args.speeds = np.array(input().split(" ")).astype(float)
     if args.auto:
         print("Automatically finding speakers speeds...")
@@ -283,10 +284,10 @@ def pipeline(args):
         print("Going to speed up the speakers by :")
         print(args.speeds)
     print("speeding up...")
-    speed_up(segment_list, speaker_list, args.speeds, args.filename, output_file="../temp_folder/audio_speedup.wav")
+    speed_up(segment_list, speaker_list, args.speeds, args.filename, output_file="temp_folder/audio_speedup.wav")
     print("adding intro...")
-    add_intro("../temp_folder/audio_speedup.wav", args.save_file)
+    add_intro("temp_folder/audio_speedup.wav", args.save_file)
     if to_delete:
         os.remove(args.filename)
     print("Done in {} seconds! Saved the result to {}".format(int(time.time() -start_time), args.save_file))
-    return speeds
+    return args.speeds
