@@ -24,11 +24,10 @@ To add a podcast to the list so that it's downloaded, transformed and uploaded t
 
 `original_rss` should be the RSS link of the original podcast, `new_rss` should be the RSS link of the Anchor account you've created.
 
-### We need your help
+- (optional) run `python download_and_upload/refresh.py ` to transform the episodes on you computer and upload them to Anchor. It might take a long time, but it helps!
 
-You can help by transforming and uploading new episodes coming out ! You just need to:
- - install the package (see below)
- - run `python download_and_upload/refresh.py `
+- make a pull request with all the files which have been changed.
+
 
 ## Transforming audio files manually
 You can also use this package directly to transform podcast audio files. In this case, you'll need to install it first.
