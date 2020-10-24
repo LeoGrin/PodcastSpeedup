@@ -34,6 +34,8 @@ You can help by transforming and uploading new episodes coming out ! You just ne
 You can also use this package directly to transform podcast audio files. In this case, you'll need to install it first.
 
 ### Installing
+
+#### Sox
 SoX version 14.4.2 or higher should be installed.
 
 To install SoX on Mac with Homebrew:
@@ -46,8 +48,12 @@ on Linux:
 
 or install from [source](https://sourceforge.net/projects/sox/files/sox/).
 
+#### DeepSpeech models
+You'll need to download DeepSpeech models. Simply run:
 
-When SoX is installed, use `pip install -r requirements.txt` to install the required packages.
+`wget -P models/ -i models/model_links.txt`
+
+When SoX is installed and the DeepSpeech models are downloaded, use `pip install -r requirements.txt` to install the required packages. You're done!
 
 
 
