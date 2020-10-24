@@ -8,15 +8,17 @@ There are two ways to use this package:
 ### Suscribing 
 Simply check [the list of available podcasts](https://github.com/LeoGrin/PodcastSpeedup/blob/master/RSS_links.txt) and 
 suscribe to the one you want on your podcast app. For each podcast, the speeds of the speakers are equalized by 
-speeding up the slowest. If the podcast you want is not available, you can add a new podcast to the list.
+speeding up the slowest. If the podcast you want is not available, you can add this new podcast to the list:
 
 
 ### Adding a podcast
 
 To add a podcast to the list so that it's downloaded, transformed and uploaded to a new RSS link:
-- create an [Anchor](https://anchor.fm/) account (with a new email adress)
-    
-- [find the rss link of this Anchor account](https://help.anchor.fm/hc/en-us/articles/360027712351-Locating-your-Anchor-RSS-feed)
+
+- install the package (see below)
+
+- create an [Anchor](https://anchor.fm/) account (with a new email adress), and [find the rss link of this Anchor account](https://help.anchor.fm/hc/en-us/articles/360027712351-Locating-your-Anchor-RSS-feed)
+
     
 - run the following command with your own parameters (this is an example for the podcast Conversation With Tyler)
 
@@ -24,13 +26,15 @@ To add a podcast to the list so that it's downloaded, transformed and uploaded t
 
 `original_rss` should be the RSS link of the original podcast, `new_rss` should be the RSS link of the Anchor account you've created.
 
-- (optional) run `python download_and_upload/refresh.py ` to transform the episodes on you computer and upload them to Anchor. It might take a long time, but it helps!
+- (optional) run `python download_and_upload/refresh.py ` 
+
+It automatically downloads new episodes, transform them, and upload the new files to Anchor. It might take a long time, but it helps!
 
 - make a pull request with all the files which have been changed.
 
 
 ## Transforming audio files manually
-You can also use this package directly to transform podcast audio files. In this case, you'll need to install it first.
+You can also use this package directly to transform podcast audio files. In this case, you'll need to install it first:
 
 ### Installing
 
@@ -75,7 +79,7 @@ Try `python audio_treatment/speedup.py -f audio-files/tyler-trimmed.wav -s 1.8 1
 
 ### Notes:
 
-The package is quite slow right now (30 minutes for a 1h30 podcast)
+The package is quite slow right now (30 minutes for a 1h30 podcast in automatic mode, 10 minutes otherwise).
 
 By default, the speakers are ordered according to their first appearance in the podcast. Given that the host of the podcast is probably the first speaker, `-s 2 1.3` should speed-up the host x2 and the guest x1.3. Note that intro music can sometimes mess the default order of the speakers (to be solved).
 
