@@ -289,3 +289,4 @@ def pipeline(args):
     if to_delete:
         os.remove(args.filename)
     print("Done in {} seconds! Saved the result to {}".format(int(time.time() -start_time), args.save_file))
+    return speeds

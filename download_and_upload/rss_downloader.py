@@ -23,6 +23,7 @@ def update_rss(rss_url, csv_filepath):
             if link.type == u'audio/mpeg':
                 episode["url"] = link.href
         episode["uploaded"] = False
+        episode["sped_up_by"] = None
         episodes.append(episode)
     df = pd.DataFrame(episodes)
     # if the db already exists, update it
@@ -43,9 +44,9 @@ if __name__ == """__main__""":
     #
     # Take url and directory parameters from user call
     #
-    #url = "https://rationallyspeakingpodcast.libsyn.com/rss"
-    url = "http://cowenconvos.libsyn.com/rss"
+    url = "https://rationallyspeakingpodcast.libsyn.com/rss"
+    #url = "http://cowenconvos.libsyn.com/rss"
     #url = "https://feeds.feedburner.com/80000HoursPodcast"
-    csv_filepath = "podcasts_db/cwt.csv"
+    csv_filepath = "podcasts_db/rationally_speaking.csv"
     update_rss(url, csv_filepath)
 

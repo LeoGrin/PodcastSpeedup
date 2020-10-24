@@ -8,7 +8,7 @@ import os.path
 
 
 
-def upload_podcast(audio_filepath, image_filepath, name, description, login, password):
+def upload_one_episode(audio_filepath, image_filepath, name, description, login, password):
     """
     Upload the podcast episode to Anchor through Selenium
     :param filepath: filepath of the audio file to upload
@@ -84,4 +84,4 @@ if __name__ == """__main__""":
     image_filepath = "temp_folder/image.jpg"
     episode_name = "Wiblin episode trimmed"
     episode_description = "This is a test !"
-    upload_podcast(audio_filepath, image_filepath, episode_name, episode_description, login, password)
+    upload_one_episode(audio_filepath, image_filepath, episode_name, episode_description, login, password)
