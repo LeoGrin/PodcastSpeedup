@@ -18,6 +18,7 @@ def add_podcast():
         args.short_name = "_".join(args.full_name)
     args.full_name = " ".join(args.full_name)
 
+    # add a new row to the database, so that this podcast will be tranformed during the next refresh
     podcasts_df_file = "download_and_upload/podcasts/podcasts_db/all_podcasts_db.csv"
     podcasts_df = pd.read_csv(podcasts_df_file)
     new_row = {"full_name": args.full_name,
@@ -28,6 +29,13 @@ def add_podcast():
                "anchor_password": args.anchor_password}
     podcasts_df = podcasts_df.append(new_row, ignore_index=True)
     podcasts_df.to_csv(podcasts_df_file, index=False)
+
+    print("Podcast added to the database, it will be transformed during the next refresh!")
+
+    rss_links_file = open("RSS_links.txt", "a")
+    rss_links_file.write("{} : {} \n".format(args.full_name, args.new_rss))
+    rss_links_file.close()
+    print("rss link added to the list !")
 
 
 if __name__ == """__main__""":
