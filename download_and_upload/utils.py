@@ -1,10 +1,13 @@
 import urllib.request
 from urllib.error import HTTPError
+import re
 
 #
 # Takes a url and a directory for saving the file. Directory must exist.
 #
-def download(url, dir_name, file_name):
+def download(url, dir_name, file_name, preserve_extension):
+    file_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0]  # exctract the file name
+    file_extension = file_name.split(".")[-1]
     #if is_audio_link:
     #    file_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0] #exctract the file name
     #else:
@@ -18,7 +21,10 @@ def download(url, dir_name, file_name):
     )
     u = urllib.request.urlopen(req)
 
-    f = open(dir_name + '/' + file_name, 'wb')
+    if preserve_extension:
+        f = open(dir_name + '/' + file_name + "." + file_extension, 'wb')
+    else:
+        f = open(dir_name + '/' + file_name, 'wb')
     file_size = int(int(u.info()["Content-Length"]) / 1e3)
     print("Downloading File: %s (Size: %s Kb)" % (file_name, file_size))
     print_every = 100
@@ -40,3 +46,10 @@ def download(url, dir_name, file_name):
         iter += 1
 
     f.close()
+
+    return file_name, file_extension
+
+    #if is_audio_link:
+    #    file_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0] #exctract the file name
+    #else:
+    #change user-agent to bypass error 403 on some feeds

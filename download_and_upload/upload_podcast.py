@@ -17,12 +17,15 @@ def upload_all_podcast_from_db(podcast_db, anchor_login, anchor_password):
         try:
             #download podcast and image temporarly
             print("Downloading the episode from the rss feed... ({} / {})".format(counter, len(df_to_upload)))
-            download(episode.url, "temp_folder", "audio.mp3")
+
+            original_file_name, original_file_extension = download(episode.url, "temp_folder", "audio", preserve_extension = True)
             download(episode.image, "temp_folder", "image.jpg")
             #do the speaker diarization and the speedup
             print("Transforming the audio file...")
             parser = create_parser()
-            args = parser.parse_args(['-f', 'temp_folder/audio.mp3', '-auto', '-save', 'temp_folder/audio_transformed.mp3'])
+            args = parser.parse_args(['-f', 'temp_folder/{}'.format(original_file_name),
+                                      '-auto',
+                                      '-save', 'temp_folder/audio_transformed.{}'.format(original_file_extension)])
             speeds = pipeline(args)
             print("Uploading to Anchor...")
             description = episode.summary + "\n Sped up the speakers by {}".format(speeds)
