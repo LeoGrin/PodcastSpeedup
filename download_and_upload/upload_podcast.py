@@ -18,32 +18,38 @@ def upload_all_podcast_from_db(podcast_db, anchor_login, anchor_password):
             #download podcast and image temporarly
             print("Downloading the episode from the rss feed... ({} / {})".format(counter, len(df_to_upload)))
 
-            original_file_name, original_file_extension = download(episode.url, "temp_folder", "audio", preserve_extension = True)
+            original_file_extension = download(episode.url, "temp_folder", "audio", preserve_extension = True)
+            original_file_name = "audio.{}".format(original_file_extension)
+            transformed_file_name = "audio_transformed.{}".format(original_file_extension)
             download(episode.image, "temp_folder", "image.jpg")
             #do the speaker diarization and the speedup
             print("Transforming the audio file...")
             parser = create_parser()
+            #TODO check if quality decrease is due to different extension or other processing. I think it's due to something else
+            print("transforming {} to {}".format(original_file_name, transformed_file_name))
             args = parser.parse_args(['-f', 'temp_folder/{}'.format(original_file_name),
                                       '-auto',
-                                      '-save', 'temp_folder/audio_transformed.{}'.format(original_file_extension)])
+                                      '-save', 'temp_folder/{}'.format(transformed_file_name)])
             speeds = pipeline(args)
             print("Uploading to Anchor...")
-            description = episode.summary + "\n Sped up the speakers by {}".format(speeds)
-            successful_upload = upload_one_episode('temp_folder/audio_transformed.mp3', 'temp_folder/image.jpg', episode.title, description, anchor_login, anchor_password)
+            description = episode.summary + "\n Sped up the speakers by {}".format(map(lambda x: int(x * 100) / 100, speeds))
+            successful_upload = upload_one_episode('temp_folder/{}'.format(transformed_file_name),
+                                                   'temp_folder/image.jpg',
+                                                   episode.title, description, anchor_login, anchor_password)
             if successful_upload:
                 df.loc[[index], ["uploaded"]] = True
                 df.loc[[index], ["sped_up_by"]] = ", ".join([str(speed) for speed in speeds])
                 df.to_csv(podcast_db, index=False)
             print("Removing temporary files...")
-            os.remove('temp_folder/audio.mp3')
-            os.remove('temp_folder/audio_transformed.mp3')
+            os.remove('temp_folder/{}'.format(original_file_name))
+            os.remove('temp_folder/{}'.format(transformed_file_name))
             os.remove('temp_folder/image.jpg')
             print("Done !")
         except Exception as e:
-            print("Error")
-            print(e)
-            print("This episode will not be updated, moving on to the next")
-            print("Careful, this can shuffle episode order in the RSS flux")
+           print("Error")
+           print(e)
+           print("This episode will not be updated, moving on to the next")
+           print("Careful, this can shuffle episode order in the RSS flux")
         counter += 1
     print("Done ! (took {} seconds)".format(int(time.time() - start_time)))
 

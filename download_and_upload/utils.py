@@ -5,9 +5,8 @@ import re
 #
 # Takes a url and a directory for saving the file. Directory must exist.
 #
-def download(url, dir_name, file_name, preserve_extension):
-    file_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0]  # exctract the file name
-    file_extension = file_name.split(".")[-1]
+def download(url, dir_name, file_name, preserve_extension=False):
+    #file_extension = url.split('/')[-1].split(".")[-1]
     #if is_audio_link:
     #    file_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0] #exctract the file name
     #else:
@@ -22,7 +21,10 @@ def download(url, dir_name, file_name, preserve_extension):
     u = urllib.request.urlopen(req)
 
     if preserve_extension:
-        f = open(dir_name + '/' + file_name + "." + file_extension, 'wb')
+        #TODO warning it works only for sound
+        audio_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0]  # exctract the file name
+        audio_extension = audio_name.split(".")[-1]
+        f = open(dir_name + '/' + file_name + "." + audio_extension, 'wb')
     else:
         f = open(dir_name + '/' + file_name, 'wb')
     file_size = int(int(u.info()["Content-Length"]) / 1e3)
@@ -47,7 +49,8 @@ def download(url, dir_name, file_name, preserve_extension):
 
     f.close()
 
-    return file_name, file_extension
+    if preserve_extension:
+        return audio_extension
 
     #if is_audio_link:
     #    file_name = re.findall(r"^.*\.(?:mp3|wav)", url.split('/')[-1])[0] #exctract the file name
