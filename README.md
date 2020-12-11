@@ -3,11 +3,6 @@ There are two ways to use this package:
 - Simply suscribing to the RSS links on your favorite podcast app (no need to install the package)
 - Directly changing the speaker speeds of an audio file.
 
-<script>
-var audio = new Audio("https://raw.githubusercontent.com/USERNAME/REPOSITORY/BRANCH/Audio.mp3")
-audio.play()
-</script>
-
 ## RSS feeds
 
 ### Suscribing 
