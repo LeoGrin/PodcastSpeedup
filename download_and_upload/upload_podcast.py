@@ -5,6 +5,8 @@ from audio_treatment.speedup_functions import pipeline
 from audio_treatment.speedup import create_parser
 import os
 import time
+from bs4 import BeautifulSoup
+
 
 def upload_all_podcast_from_db(podcast_db, anchor_login, anchor_password):
     start_time = time.time()
@@ -32,7 +34,8 @@ def upload_all_podcast_from_db(podcast_db, anchor_login, anchor_password):
                                       '-save', 'temp_folder/{}'.format(transformed_file_name)])
             speeds = pipeline(args)
             print("Uploading to Anchor...")
-            description = episode.summary + "\n Sped up the speakers by {}".format(map(lambda x: int(x * 100) / 100, speeds))
+            soup = BeautifulSoup(episode.summary) #for description
+            description = soup.get_text() + "\n Sped up the speakers by {}".format(str(list(map(lambda x: str(int(x * 100) / 100), speeds))))
             successful_upload = upload_one_episode('temp_folder/{}'.format(transformed_file_name),
                                                    'temp_folder/image.jpg',
                                                    episode.title, description, anchor_login, anchor_password)

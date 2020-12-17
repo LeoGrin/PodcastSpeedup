@@ -74,6 +74,8 @@ def transform(segment_list, speaker_list, speeds, input_file, temp_file="temp_fo
             #else:
         if abs(speeds[speaker_list[i]] - 1.0) > 0.02: # don't do anything if the difference is too small
             tfm.tempo(speeds[speaker_list[i]], "s")
+        else:
+            print("difference of speed too small, no speeding up")
         tfm.build(input_file, temp_file + str(i) + ".wav")
         temp_paths.append(temp_file + str(i) + ".wav")
 
@@ -244,7 +246,7 @@ def add_intro(audio_path, output_path, keep_file = False):
     else:
         intro_path = "audio-files/intro_mono.wav"
 
-    desired_sample_rate = sox.file_info.sample_rate(audio_path)
+    desired_sample_rate = sox.file_info.sample_rate(audio_path) #TODO is this decreasing audio quality
     tfm = sox.Transformer()
     tfm.set_output_format(rate=desired_sample_rate)
     tfm.build(intro_path, "temp_folder/intro_sample_rate.wav")

@@ -29,7 +29,7 @@ def download(url, dir_name, file_name, preserve_extension=False):
         f = open(dir_name + '/' + file_name, 'wb')
     file_size = int(int(u.info()["Content-Length"]) / 1e3)
     print("Downloading File: %s (Size: %s Kb)" % (file_name, file_size))
-    print_every = 100
+    print_every = 1000
     iter = 0
     file_size_dl = 0
     block_sz = 8192

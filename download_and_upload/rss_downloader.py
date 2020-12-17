@@ -14,6 +14,7 @@ def update_rss(rss_url, csv_filepath):
     feed = feedparser.parse(rss_url)
     episodes = []
     for entry in feed.entries:
+        #TODO fetch pub date
         episode = {}
         episode["title"] = entry.title
         episode["summary"] = entry.summary
