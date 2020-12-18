@@ -270,6 +270,7 @@ def pipeline(args):
     diarization = np.array(speaker_diarization(args.filename, n_speakers=args.n_speakers, mid_step=args.chunk_size,
                                                short_window=args.short_window, mid_window=args.mid_window,
                                                lda_dim=args.lda_dim)).astype("int")
+    print("making diarization chronological...")
     diarization = make_diarization_chronological(diarization)
     print("Done !")
     print("Took {} seconds".format(int(time.time() - t)))
