@@ -109,6 +109,8 @@ def mid_feature_extraction(signal, sampling_rate, mid_window, mid_step,
         mid_feature_names[i + n_feats] = short_feature_names[i] + "_" + "std"
 
         while cur_position < num_short_features:
+            print(cur_position)
+            print(mt_step_ratio)
             end = cur_position + mid_window_ratio
             if end > num_short_features:
                 end = num_short_features
