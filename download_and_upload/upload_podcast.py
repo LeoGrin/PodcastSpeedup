@@ -22,7 +22,8 @@ def upload_all_podcast_from_db(podcast_db, anchor_login, anchor_password):
 
             original_file_extension = download(episode.url, "temp_folder", "audio", preserve_extension = True)
             original_file_name = "audio.{}".format(original_file_extension)
-            transformed_file_name = "audio_transformed.{}".format(original_file_extension)
+            #transformed_file_name = "audio_transformed.{}".format(original_file_extension)
+            transformed_file_name = "audio_transformed.{}".format("wav")
             download(episode.image, "temp_folder", "image.jpg")
             #do the speaker diarization and the speedup
             print("Transforming the audio file...")

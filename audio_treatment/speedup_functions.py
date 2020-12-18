@@ -3,7 +3,7 @@ import time
 from tqdm import tqdm
 from audio_treatment.speech_to_text import *
 import warnings
-
+import pydub
 
 
 def make_diarization_chronological(diarization):
@@ -219,16 +219,21 @@ def convert(input_file, output_format="wav"):
     :param output_format: format to output
     :return:  path to the  new file
     """
+    #to_delete = False
+    #if input_file[-3:] != output_format:
+        #to_delete = True #delete the converted file afterward (we only use the wav file for transformation)
+        #tfm = sox.Transformer()
+        #new_file = input_file[:-3] + "wav"
+        #tfm.build(input_file, new_file)
+    #else:
+        #new_file = input_file
     to_delete = False
-    if input_file[-3:] != output_format:
-        to_delete = True #delete the converted file afterward (we only use the wav file for transformation)
-        tfm = sox.Transformer()
-        new_file = input_file[:-3] + "wav"
-        tfm.build(input_file, new_file)
-    else:
-        new_file = input_file
+    if input_file.split(".")[-1] == "mp3":
+        sound = pydub.AudioSegment.from_mp3(input_file)
+        output_filename = str.replace(input_file, "mp3", output_format)
+        sound.export(output_filename, format=output_format)
 
-    return new_file, to_delete
+    return output_filename, to_delete
 
 def add_intro(audio_path, output_path, keep_file = False):
     """
