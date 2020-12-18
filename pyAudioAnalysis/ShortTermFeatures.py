@@ -602,6 +602,11 @@ def feature_extraction(signal, sampling_rate, window, step, deltas=True):
     features = []
     # for each short-term window to end of signal
     while current_position + window - 1 < number_of_samples:
+        print("short")
+        print(current_position)
+        print(step)
+        print(window)
+        print(number_of_samples)
         count_fr += 1
         # get current window
         x = signal[current_position:current_position + window]
