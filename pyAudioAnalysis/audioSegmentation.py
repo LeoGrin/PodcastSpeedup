@@ -811,18 +811,19 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
         - lda_dim (opt     LDA dimension (0 for no LDA)
         - plot_res         (opt)   0 for not plotting the results 1 for plotting
     """
+    print("1")
     sampling_rate, signal = audioBasicIO.read_audio_file(filename)
     signal = audioBasicIO.stereo_to_mono(signal)
     duration = len(signal) / sampling_rate
 
     base_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                             "data/models")
-
+    print("2")
     classifier_all, mean_all, std_all, class_names_all, _, _, _, _, _ = \
         at.load_model_knn(os.path.join(base_dir, "knn_speaker_10"))
     classifier_fm, mean_fm, std_fm, class_names_fm, _, _, _, _,  _ = \
         at.load_model_knn(os.path.join(base_dir, "knn_speaker_male_female"))
-
+    print("3")
     mid_feats, st_feats, _ = \
         mtf.mid_feature_extraction(signal, sampling_rate,
                                    mid_window * sampling_rate,
@@ -832,7 +833,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
 
     mid_term_features = np.zeros((mid_feats.shape[0] + len(class_names_all) +
                                   len(class_names_fm), mid_feats.shape[1]))
-
+    print("4")
     for index in range(mid_feats.shape[1]):
         feature_norm_all = (mid_feats[:, index] - mean_all) / std_all
         feature_norm_fm = (mid_feats[:, index] - mean_fm) / std_fm
@@ -843,7 +844,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
         mid_term_features[0:mid_feats.shape[0], index] = mid_feats[:, index]
         mid_term_features[start:end, index] = p1 + 1e-4
         mid_term_features[end::, index] = p2 + 1e-4
-
+    print("5")
     mid_feats = mid_term_features    # TODO
     feature_selected = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 41,
                         42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]
@@ -853,13 +854,14 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
     mid_feats_norm, mean, std = at.normalize_features([mid_feats.T])
     mid_feats_norm = mid_feats_norm[0].T
     n_wins = mid_feats.shape[1]
+    print("6")
 
     # remove outliers:
     dist_all = np.sum(distance.squareform(distance.pdist(mid_feats_norm.T)),
                       axis=0)
     m_dist_all = np.mean(dist_all)
     i_non_outliers = np.nonzero(dist_all < 1.2 * m_dist_all)[0]
-
+    print("7")
     # TODO: Combine energy threshold for outlier removal:
     # EnergyMin = np.min(mt_feats[1,:])
     # EnergyMean = np.mean(mt_feats[1,:])
@@ -887,7 +889,6 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
             cur_pos = 0
             feat_len = len(st_feats[index])
             while cur_pos < feat_len:
-                print("test")
                 n1 = cur_pos
                 n2 = cur_pos + window_ratio
                 if n2 > feat_len:
@@ -926,7 +927,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
             LinearDiscriminantAnalysis(n_components=lda_dim)
         clf.fit(mt_feats_to_red.T, labels)
         mid_feats_norm = (clf.transform(mid_feats_norm.T)).T
-
+    print("8")
     if n_speakers <= 0:
         s_range = range(2, 10)
     else:
@@ -980,7 +981,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
             sil.append((sil_2[c] - sil_1[c]) / (max(sil_2[c], sil_1[c]) + 1e-5))
         # keep the AVERAGE SILLOUETTE
         sil_all.append(np.mean(sil))
-
+    print("9")
     imax = int(np.argmax(sil_all))
     # optimal number of clusters
     num_speakers = s_range[imax]
@@ -993,7 +994,8 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
     for index in range(n_wins):
         j = np.argmin(np.abs(index-i_non_outliers))
         cls[index] = cluster_labels[imax][j]
-        
+
+    print("10")
     # Post-process method 1: hmm smoothing
     for index in range(1):
         # hmm training
@@ -1004,7 +1006,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
         hmm.transmat_ = transmat            
         hmm.means_ = means; hmm.covars_ = cov
         cls = hmm.predict(mt_feats_norm_or.T)                    
-    
+    print("11")
     # Post-process method 2: median filtering:
     cls = scipy.signal.medfilt(cls, 13)
     cls = scipy.signal.medfilt(cls, 11)
@@ -1018,7 +1020,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
         seg_start, seg_end, seg_labs = read_segmentation_gt(gt_file)
         flags_gt, class_names_gt = segments_to_labels(seg_start, seg_end,
                                                       seg_labs, mid_step)
-
+    print("12")
     if plot_res:
         fig = plt.figure()    
         if n_speakers > 0:
