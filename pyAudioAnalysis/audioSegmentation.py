@@ -887,6 +887,7 @@ def speaker_diarization(filename, n_speakers, mid_window=2.0, mid_step=0.2,
             cur_pos = 0
             feat_len = len(st_feats[index])
             while cur_pos < feat_len:
+                print("test")
                 n1 = cur_pos
                 n2 = cur_pos + window_ratio
                 if n2 > feat_len:
