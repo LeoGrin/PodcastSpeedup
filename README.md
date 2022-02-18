@@ -5,6 +5,8 @@ There are two ways to use this package:
 
 ## RSS feeds
 
+**UPDATE: Due to Anchor's API change, this feature is currently broken. You can still change the speaker speeds of an audio file (see below).**
+
 ### Suscribing 
 Simply check [the list of available podcasts](https://github.com/LeoGrin/PodcastSpeedup/blob/master/RSS_links.txt) and 
 suscribe to the one you want on your podcast app. For each podcast, the speeds of the speakers are equalized by 
